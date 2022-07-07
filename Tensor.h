@@ -25,14 +25,14 @@ public:
 	Tensor operator-(const Tensor& rhs_);
 	Tensor operator*(const Tensor& rhs_);
 	Tensor operator/(const Tensor& rhs_);
-	friend Tensor operator+(const double val_, const Tensor& rhs_);
-	friend Tensor operator+(const Tensor& rhs_, const double val_);
-	friend Tensor operator-(const double val_, const Tensor& rhs_);
-	friend Tensor operator-(const Tensor& rhs_, const double val_);
-	friend Tensor operator*(const double val_, const Tensor& rhs_);
-	friend Tensor operator*(const Tensor& rhs_, const double val_);
-	friend Tensor operator/(const double val_, const Tensor& rhs_);
-	friend Tensor operator/(const Tensor& rhs_, const double val_);
+	friend Tensor operator+(const double& val_, const Tensor& rhs_);
+	friend Tensor operator+(const Tensor& rhs_, const double& val_);
+	friend Tensor operator-(const double& val_, const Tensor& rhs_);
+	friend Tensor operator-(const Tensor& rhs_, const double& val_);
+	friend Tensor operator*(const double& val_, const Tensor& rhs_);
+	friend Tensor operator*(const Tensor& rhs_, const double& val_);
+	friend Tensor operator/(const double& val_, const Tensor& rhs_);
+	friend Tensor operator/(const Tensor& rhs_, const double& val_);
 public:
 	int size() const;
 	int dim(int dim_) const;
@@ -184,7 +184,7 @@ Tensor<T> Tensor<T>::operator-(const Tensor& rhs_)
 {
 	Tensor tmp(dim_0, dim_1, dim_2, dim_3);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = tensor[idx] + rhs_.tensor[idx];
+	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = tensor[idx] - rhs_.tensor[idx];
 	return Tensor(tmp);
 }
 
@@ -193,7 +193,7 @@ Tensor<T> Tensor<T>::operator*(const Tensor& rhs_)
 {
 	Tensor tmp(dim_0, dim_1, dim_2, dim_3);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = tensor[idx] + rhs_.tensor[idx];
+	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = tensor[idx] * rhs_.tensor[idx];
 	return Tensor(tmp);
 }
 
@@ -202,12 +202,12 @@ Tensor<T> Tensor<T>::operator/(const Tensor& rhs_)
 {
 	Tensor tmp(dim_0, dim_1, dim_2, dim_3);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = tensor[idx] + rhs_.tensor[idx];
+	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = tensor[idx] / rhs_.tensor[idx];
 	return Tensor(tmp);
 }
 
 template <typename T>
-Tensor<T> operator+(const double val_, const Tensor<T>& rhs_)
+Tensor<T> operator+(const double& val_, const Tensor<T>& rhs_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
@@ -216,7 +216,7 @@ Tensor<T> operator+(const double val_, const Tensor<T>& rhs_)
 }
 
 template <typename T>
-Tensor<T> operator+(const Tensor<T>& rhs_, const double val_)
+Tensor<T> operator+(const Tensor<T>& rhs_, const double& val_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
@@ -225,7 +225,7 @@ Tensor<T> operator+(const Tensor<T>& rhs_, const double val_)
 }
 
 template <typename T>
-Tensor<T> operator-(const double val_, const Tensor<T>& rhs_)
+Tensor<T> operator-(const double& val_, const Tensor<T>& rhs_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
@@ -234,7 +234,7 @@ Tensor<T> operator-(const double val_, const Tensor<T>& rhs_)
 }
 
 template <typename T>
-Tensor<T> operator-(const Tensor<T>& rhs_, const double val_)
+Tensor<T> operator-(const Tensor<T>& rhs_, const double& val_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
@@ -243,7 +243,7 @@ Tensor<T> operator-(const Tensor<T>& rhs_, const double val_)
 }
 
 template <typename T>
-Tensor<T> operator*(const double val_, const Tensor<T>& rhs_)
+Tensor<T> operator*(const double& val_, const Tensor<T>& rhs_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
@@ -252,7 +252,7 @@ Tensor<T> operator*(const double val_, const Tensor<T>& rhs_)
 }
 
 template <typename T>
-Tensor<T> operator*(const Tensor<T>& rhs_, const double val_)
+Tensor<T> operator*(const Tensor<T>& rhs_, const double& val_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
@@ -261,7 +261,7 @@ Tensor<T> operator*(const Tensor<T>& rhs_, const double val_)
 }
 
 template <typename T>
-Tensor<T> operator/(const double val_, const Tensor<T>& rhs_)
+Tensor<T> operator/(const double& val_, const Tensor<T>& rhs_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
@@ -270,7 +270,7 @@ Tensor<T> operator/(const double val_, const Tensor<T>& rhs_)
 }
 
 template <typename T>
-Tensor<T> operator/(const Tensor<T>& rhs_, const double val_)
+Tensor<T> operator/(const Tensor<T>& rhs_, const double& val_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
