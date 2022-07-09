@@ -4,9 +4,9 @@
 
 #include "Tensor.h"
 
-Tensor<double> getCSVDataSet(const char* path, bool isHead)
+Tensor<std::string> getCSVDataSet(const char* path, bool isHead)
 {
-	Tensor<double> data;
+	Tensor<std::string> data;
 	std::fstream CSVFile;
 	CSVFile.open(path, std::ios::in);
 	bool fileOpen = CSVFile.is_open();
@@ -50,8 +50,7 @@ Tensor<double> getCSVDataSet(const char* path, bool isHead)
 			for (int cidx = 0; cidx < Ncol; cidx++)
 			{
 				postComma = strLine.find(",", prevComma);
-				std::string strData = strLine.substr(prevComma, postComma - prevComma);
-				data(ridx,cidx) = std::stod(strData);
+				data(ridx,cidx) = strLine.substr(prevComma, postComma - prevComma);
 				prevComma = postComma + 1;
 			}
 		}
@@ -60,25 +59,35 @@ Tensor<double> getCSVDataSet(const char* path, bool isHead)
 	return data;
 }
 
-void parseInputAndTarget(const Tensor<double>& data_, Tensor<double>& input_, Tensor<double>& target_, const int input_num_, const int target_num_)
+void parseInputAndTarget(const Tensor<std::string>& data_, Tensor<std::string>& input_, Tensor<std::string>& target_, const int target_pos_)
 {
 	int dataNum = data_.dim(0);
 	int fieldNum = data_.dim(1);
-	input_.resize(dataNum, input_num_);
-	target_.resize(dataNum, target_num_);
+	input_.resize(dataNum, fieldNum - 1);
+	target_.resize(dataNum, 1);
 
 	for (int i = 0; i < dataNum; i++)
 	{
-		for (int j = 0; j < fieldNum; j++)
+		for (int j = 0, input_dim_1 = 0; j < fieldNum; j++)
 		{
-			if (j < input_num_)
+			if (j != target_pos_)
 			{
-				input_(i, j) = data_.element(i, j);
+				input_(i, input_dim_1) = data_.element(i, j);
+				input_dim_1++;
 			}
-			else if (j < input_num_ + target_num_)
+			else
 			{
-				target_(i, j - input_num_) = data_.element(i, j);
+				target_(i, 0) = data_.element(i, j);
 			}
 		}
+	}
+}
+
+void printResult(const Tensor<std::string>& output_, const Tensor<std::string>& target_)
+{
+	int dim_0 = output_.dim(0);
+	for (int i = 0; i < dim_0; i++)
+	{
+		printf("%s[%s]\n", output_.element(i).c_str(), target_.element(i).c_str());
 	}
 }

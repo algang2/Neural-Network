@@ -1,8 +1,7 @@
 #include "NeuralNet.h"
-#include <stdio.h>
 
-NeuralNet::NeuralNet(int epoch_, int batch_, OPT_OPTM optimizer_, OPT_LOSF lossF_, OPT_INIT weightInit_, OPT_NORM norm_, double rmse_)
-	:epoch(epoch_), batch(batch_), optimizer(optimizer_), lossF(lossF_), weightInit(weightInit_), norm(norm_), rmse(rmse_)
+NeuralNet::NeuralNet(int epoch_, int batch_, OPT_LRN learn_, OPT_OPTM optimizer_, OPT_LOSF lossF_, OPT_INIT weightInit_, OPT_NORM norm_, double rmse_)
+	:epoch(epoch_), batch(batch_), learn(learn_), optimizer(optimizer_), lossF(lossF_), weightInit(weightInit_), norm(norm_), rmse(rmse_)
 {
 	layerNum = 0;
 }
@@ -12,14 +11,54 @@ NeuralNet::~NeuralNet()
 
 }
 
-void NeuralNet::setInput(const Tensor<double>& input_)
+void NeuralNet::setInput(const Tensor<std::string>& input_)
 {
-	input = input_;
+	try
+	{
+		int dim_0 = input_.dim(0);
+		int dim_1 = input_.dim(1);
+		int dim_2 = input_.dim(2);
+		int dim_3 = input_.dim(3);
+		int size = input_.size();
+		input.resize(dim_0, dim_1, dim_2, dim_3);
+		for (int i = 0; i < size; i++)input(i) = std::stod(input_.element(i));
+		if (norm == OPT_NORM::USENORM)
+		{
+			normalization();
+		}
+	}
+	catch (...)
+	{
+		printf("#Input data type must be Numbers.");
+	}
 }
 
-void NeuralNet::setTarget(const Tensor<double>& target_)
+void NeuralNet::setTarget(const Tensor<std::string>& target_)
 {
-	target = target_;
+	try
+	{
+		if (learn == OPT_LRN::REGRESSION)
+		{
+			int size = target_.size();
+			target.resize(size);
+			for (int i = 0; i < size; i++)target(i) = std::stod(target_.element(i));
+		}
+		else if (learn == OPT_LRN::CLASSIFICATION)
+		{
+			oneHotEncoding(target_);
+			int size = target_.size();
+			int encode = encoder.size();
+			target.resize(size, encode);
+			for (int i = 0; i < size; i++)
+			{
+				target(i, encoder[target_.element(i)]) = 1;
+			}
+		}
+	}
+	catch (...)
+	{
+		printf("#Target data type must be Numbers.");
+	}
 }
 
 void NeuralNet::addLayer(OPT_LYR layer_, int node_, OPT_ACTF actF_)
@@ -32,12 +71,8 @@ void NeuralNet::addLayer(OPT_LYR layer_, int node_, OPT_ACTF actF_)
 	layerNum++;
 }
 
-void NeuralNet::train()
+Tensor<std::string> NeuralNet::train()
 {
-	if (norm == OPT_NORM::USENORM)
-	{
-		//normalize
-	}
 	for (int ep = 0; ep < epoch; ep++)
 	{
 		double mse = 0.f;
@@ -47,22 +82,30 @@ void NeuralNet::train()
 			Tensor<double> batchSliceX = sliceByBatch(input, bat * batch, (bat + 1) * batch);
 			Tensor<double> batchSliceT = sliceByBatch(target, bat * batch, (bat + 1) * batch);
 			Tensor<double> batchSliceY = forwardProp(batchSliceX);
-			
-			int dim_0 = batchSliceY.dim(0);
-			int dim_1 = batchSliceY.dim(1);
-			for (int i = 0; i < dim_0; i++)
-			{
-				for (int j = 0; j < dim_1; j++)
-				{
-					printf("%f[%f]\t", batchSliceY(i,j), batchSliceT(i, j));
-				}
-				printf("\n");
-			}
 			Tensor<double> batchSliceE = batchSliceT - batchSliceY;
 			backwardProp(batchSliceE);
 			updateWeight();
+			mse += calMSE(batchSliceE);
 		}
+		printf("##Epoch %d RMSE: %f##\n", ep, sqrt(mse));
 		if (sqrt(mse) < rmse)break;
+	}
+	return predict();
+}
+
+Tensor<std::string> NeuralNet::predict()
+{
+	Tensor<double> output = forwardProp(input);
+	if (learn == OPT_LRN::REGRESSION)
+	{
+		int size = output.size();
+		Tensor<std::string> outputStr(size);
+		for (int i = 0; i < size; i++)outputStr(i) = std::to_string(output.element(i));
+		return outputStr;
+	}
+	else if (learn == OPT_LRN::CLASSIFICATION)
+	{
+		return oneHotDecoding(output);
 	}
 }
 
@@ -123,4 +166,43 @@ Tensor<double> NeuralNet::sliceByBatch(const Tensor<double>& ten_, const int& pr
 		}
 	}
 	return tmpTen;
+}
+
+void NeuralNet::oneHotEncoding(const Tensor<std::string>& target_)
+{
+	int size = target_.size();
+	for (int i = 0; i < size; i++)
+	{
+		encoder[target_.element(i)];
+	}
+	for (int i = 0; i < encoder.size(); i++)
+	{
+		encoder[target_.element(i)] = i;
+	}
+}
+
+Tensor<std::string> NeuralNet::oneHotDecoding(const Tensor<double>& output_)
+{
+	int size = output_.dim(0);
+	int encode = output_.dim(1);
+	Tensor<std::string> outputStr(size);
+	for (int i = 0; i < size; i++)
+	{
+		double max = 0.f;
+		for (auto iter = encoder.begin(); iter != encoder.end(); iter++)
+		{
+			int pos = iter->second;
+			if (output_.element(i, pos) > max)
+			{
+				max = output_.element(i, pos);
+				outputStr(i) = iter->first;
+			}
+		}
+	}
+	return outputStr;
+}
+
+void NeuralNet::normalization()
+{
+	
 }

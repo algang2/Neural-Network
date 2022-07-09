@@ -1,5 +1,11 @@
 #pragma once
 
+enum class OPT_LRN
+{
+	REGRESSION = 0,
+	CLASSIFICATION = 1
+};
+
 enum class OPT_NORM
 {
 	USENORM = 0,
