@@ -1,9 +1,9 @@
 #include "LayerFullyConnected.h"
 
-LayerFullyConnected::LayerFullyConnected(int prevNode_, int node_)
+LayerFullyConnected::LayerFullyConnected(OPT_INIT weightInit_, int prevNode_, int node_)
 {
 	nodeNum = node_;
-	weight.initWeight(prevNode_, node_);
+	weight.initWeight(weightInit_, prevNode_, node_);
 }
 
 LayerFullyConnected::~LayerFullyConnected()
@@ -32,13 +32,13 @@ Tensor<double> LayerFullyConnected::forwardProp(const Tensor<double>& x_)
 			y(i, j) = sum + b;
 		}
 	}
-	nodes = actF->activation(y);
+	nodes = actFnc->activation(y);
 	return nodes;
 }
 
 Tensor<double> LayerFullyConnected::backwardProp(const Tensor<double>& e_in_)
 {
-	Tensor<double> dactNode = actF->deactivation(nodes);
+	Tensor<double> dactNode = actFnc->deactivation(nodes);
 	errors = dactNode * e_in_;
 
 	Tensor<double> w = weight.getWeight();
@@ -78,20 +78,21 @@ void LayerFullyConnected::updateWeight()
 			{
 				sum += errors.element(k, j) * prevNodes.element(k, i);
 			}
-			d_w(i, j) = 0.001 * sum / dataNum;
+			d_w(i, j) = sum / dataNum;
 		}
 	}
 	for (int j = 0; j < postNodeNum; j++)
 	{
 		for (int k = 0; k < dataNum; k++)
 		{
-			d_b += 0.001 * errors.element(k, j) / (dataNum * postNodeNum);
+			d_b += errors.element(k, j) / dataNum;
 		}
 	}
+
 	Tensor<double> w = weight.getWeight();
 	double b = weight.getBias();
-	w = w + d_w;
-	b = b + d_b;
+	w = w + optimizer->optimizeDeltaWeight(d_w);
+	b = b + optimizer->optimizeDeltaBias(d_b);
 	weight.setWeight(w);
 	weight.setBias(b);
 }

@@ -25,14 +25,6 @@ public:
 	Tensor operator-(const Tensor& rhs_);
 	Tensor operator*(const Tensor& rhs_);
 	Tensor operator/(const Tensor& rhs_);
-	friend Tensor operator+(const double& val_, const Tensor& rhs_);
-	friend Tensor operator+(const Tensor& rhs_, const double& val_);
-	friend Tensor operator-(const double& val_, const Tensor& rhs_);
-	friend Tensor operator-(const Tensor& rhs_, const double& val_);
-	friend Tensor operator*(const double& val_, const Tensor& rhs_);
-	friend Tensor operator*(const Tensor& rhs_, const double& val_);
-	friend Tensor operator/(const double& val_, const Tensor& rhs_);
-	friend Tensor operator/(const Tensor& rhs_, const double& val_);
 public:
 	int size() const;
 	int dim(int dim_) const;
@@ -44,6 +36,7 @@ public:
 	T element(int dim_0_, int dim_1_) const;
 	T element(int dim_0_, int dim_1_, int dim_2_) const;
 	T element(int dim_0_, int dim_1_, int dim_2_, int dim_3_) const;
+	void clip(double clip_);
 	void erase();
 private:
 	int dim_0, dim_1, dim_2, dim_3;
@@ -211,7 +204,7 @@ Tensor<T> operator+(const double& val_, const Tensor<T>& rhs_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = val_ + rhs_.tensor[idx];
+	for (int idx = 0; idx < size; idx++)tmp(idx) = val_ + rhs_.element(idx);
 	return Tensor<T>(tmp);
 }
 
@@ -220,7 +213,7 @@ Tensor<T> operator+(const Tensor<T>& rhs_, const double& val_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = rhs_.tensor[idx] + val_;
+	for (int idx = 0; idx < size; idx++)tmp(idx) = rhs_.element(idx) + val_;
 	return Tensor<T>(tmp);
 }
 
@@ -229,7 +222,7 @@ Tensor<T> operator-(const double& val_, const Tensor<T>& rhs_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = val_ - rhs_.tensor[idx];
+	for (int idx = 0; idx < size; idx++)tmp(idx) = val_ - rhs_.element(idx);
 	return Tensor<T>(tmp);
 }
 
@@ -238,7 +231,7 @@ Tensor<T> operator-(const Tensor<T>& rhs_, const double& val_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = rhs_.tensor[idx] - val_;
+	for (int idx = 0; idx < size; idx++)tmp(idx) = rhs_.element(idx) - val_;
 	return Tensor<T>(tmp);
 }
 
@@ -247,7 +240,7 @@ Tensor<T> operator*(const double& val_, const Tensor<T>& rhs_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = val_ * rhs_.tensor[idx];
+	for (int idx = 0; idx < size; idx++)tmp(idx) = val_ * rhs_.element(idx);
 	return Tensor<T>(tmp);
 }
 
@@ -256,7 +249,7 @@ Tensor<T> operator*(const Tensor<T>& rhs_, const double& val_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = rhs_.tensor[idx] * val_;
+	for (int idx = 0; idx < size; idx++)tmp(idx) = rhs_.element(idx) * val_;
 	return Tensor<T>(tmp);
 }
 
@@ -265,7 +258,7 @@ Tensor<T> operator/(const double& val_, const Tensor<T>& rhs_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = val_ / rhs_.tensor[idx];
+	for (int idx = 0; idx < size; idx++)tmp(idx) = val_ / rhs_.element(idx);
 	return Tensor<T>(tmp);
 }
 
@@ -274,7 +267,7 @@ Tensor<T> operator/(const Tensor<T>& rhs_, const double& val_)
 {
 	Tensor<T> tmp(rhs_);
 	int size = rhs_.size();
-	for (int idx = 0; idx < size; idx++)tmp.tensor[idx] = rhs_.tensor[idx] / val_;
+	for (int idx = 0; idx < size; idx++)tmp(idx) = rhs_.element(idx) / val_;
 	return Tensor<T>(tmp);
 }
 
@@ -348,6 +341,22 @@ template <typename T>
 T Tensor<T>::element(int dim_0_, int dim_1_, int dim_2_, int dim_3_) const
 {
 	return tensor[dim_0_ * dim_1 * dim_2 * dim_3 + dim_1_ * dim_2 * dim_3 + dim_2_ * dim_3 + dim_3_];
+}
+
+template <typename T>
+void Tensor<T>::clip(double clip_)
+{
+	for (int i = 0; i < size(); i++)
+	{
+		if (tensor[i] > clip_)
+		{
+			tensor[i] = clip_;
+		}
+		if (tensor[i] < -clip_)
+		{
+			tensor[i] = -clip_;
+		}
+	}
 }
 
 template <typename T>

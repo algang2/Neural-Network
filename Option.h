@@ -25,21 +25,16 @@ enum class OPT_ACTF
 	SIGMOID = 1,
 	TANSIG = 2,
 	RELU = 3,
-	SOFTMAX =4
-};
-
-enum class OPT_LOSF
-{
-	SSE = 0,
-	CROSSENTROPY = 1
+	LEAKYRELU = 4,
+	SOFTMAX =5
 };
 
 enum class OPT_OPTM
 {
-	GDM = 0,
-	RMSPROP = 1,
-	ADAGRAD = 2,
-	ADAM = 3
+	GDM = 1,
+	RMSPROP = 2,
+	ADAGRAD = 3,
+	ADAM = 4
 };
 
 enum class OPT_LYR

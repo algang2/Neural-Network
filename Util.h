@@ -12,7 +12,7 @@ Tensor<std::string> getCSVDataSet(const char* path, bool isHead)
 	bool fileOpen = CSVFile.is_open();
 	if (!fileOpen)
 	{
-		printf("[Error]File Not Found");
+		printf("[Error]File Not Found.\n");
 	}
 	else
 	{
@@ -85,6 +85,10 @@ void parseInputAndTarget(const Tensor<std::string>& data_, Tensor<std::string>& 
 
 void printResult(const Tensor<std::string>& output_, const Tensor<std::string>& target_)
 {
+	if (target_.size() == 0)
+	{
+		return;
+	}
 	int dim_0 = output_.dim(0);
 	for (int i = 0; i < dim_0; i++)
 	{

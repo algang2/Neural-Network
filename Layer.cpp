@@ -2,21 +2,22 @@
 #include "LayerInput.h"
 #include "LayerFullyConnected.h"
 
-#include "Function.h"
-
 Layer::Layer() 
 {
 	nodeNum = 0;
-	actF = nullptr;
+	prevLayer = nullptr;
+	actFnc = nullptr;
+	optimizer = nullptr;
 }
 
 Layer::~Layer() 
 {
 	delete prevLayer;
-	delete actF;
+	delete actFnc;
+	delete optimizer;
 }
 
-Layer* Layer::initLayer(OPT_LYR layer_, int node_, Layer* prevLayer_)
+Layer* Layer::initLayer(OPT_LYR layer_, int node_, OPT_INIT weightInit_, Layer* prevLayer_)
 {
 	Layer* lyrptr = nullptr;
 	if (layer_ == OPT_LYR::INPUT)
@@ -26,33 +27,83 @@ Layer* Layer::initLayer(OPT_LYR layer_, int node_, Layer* prevLayer_)
 	else if (layer_ == OPT_LYR::FULLYCONNECTED)
 	{
 		int nodeNum = prevLayer_->nodeNum;
-		lyrptr = new LayerFullyConnected(nodeNum, node_);
+		lyrptr = new LayerFullyConnected(weightInit_, nodeNum, node_);
 		lyrptr->prevLayer = prevLayer_;
 	}
 	return lyrptr;
 }
 
-void Layer::setActF(OPT_ACTF actF_)
+void Layer::setActFunction(OPT_ACTF actFnc_)
 {
-	if (actF_ == OPT_ACTF::LINEAR)
+	if (actFnc_ == OPT_ACTF::LINEAR)
 	{
-		actF = new Linear();
+		actFnc = new Linear();
 	}
-	else if (actF_ == OPT_ACTF::SIGMOID)
+	else if (actFnc_ == OPT_ACTF::SIGMOID)
 	{
-		actF = new Sigmoid();
+		actFnc = new Sigmoid();
 	}
-	else if (actF_ == OPT_ACTF::TANSIG)
+	else if (actFnc_ == OPT_ACTF::TANSIG)
 	{
-		actF = new Tansig();
+		actFnc = new Tansig();
 	}
-	else if (actF_ == OPT_ACTF::RELU)
+	else if (actFnc_ == OPT_ACTF::RELU)
 	{
-		actF = new ReLU();
+		actFnc = new ReLU();
 	}
-	else if (actF_ == OPT_ACTF::SOFTMAX)
+	else if (actFnc_ == OPT_ACTF::LEAKYRELU)
 	{
-		actF = new Softmax();
+		actFnc = new LeakyReLU();
+	}
+	else if (actFnc_ == OPT_ACTF::SOFTMAX)
+	{
+		actFnc = new Softmax();
+	}
+}
+
+void Layer::setOptimizer(OPT_OPTM optimizer_, const double& learningRate_, const double& val_0_, const double& val_1_)
+{
+	Tensor<double> w = weight.getWeight();
+	if (optimizer_ == OPT_OPTM::GDM)
+	{
+		double momentum = val_0_;
+		if (optimizer != nullptr)
+		{
+			delete optimizer;
+		}
+		optimizer = new GDM(learningRate_, momentum, w);
+	}
+	else if (optimizer_ == OPT_OPTM::RMSPROP)
+	{
+		if (optimizer != nullptr)
+		{
+			delete optimizer;
+		}
+		optimizer = new RMSProp();
+	}
+	else if (optimizer_ == OPT_OPTM::ADAGRAD)
+	{
+		if (optimizer != nullptr)
+		{
+			delete optimizer;
+		}
+		optimizer = new Adagrad();
+	}
+	else if (optimizer_ == OPT_OPTM::ADAM)
+	{
+		if (optimizer != nullptr)
+		{
+			delete optimizer;
+		}
+		optimizer = new Adam();
+	}
+	else
+	{
+		if (optimizer != nullptr)
+		{
+			delete optimizer;
+		}
+		optimizer = new Null(learningRate_);
 	}
 }
 

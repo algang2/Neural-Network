@@ -1,15 +1,17 @@
 #pragma once
 #include "Option.h"
-#include "Function.h"
+#include "ActiveFunction.h"
 #include "Weight.h"
+#include "Optimizer.h"
 
 class Layer
 {
 public:
 	Layer();
 	~Layer();
-	static Layer* initLayer(OPT_LYR layer_, int node_, Layer* prevLayer_ = nullptr);
-	void setActF(OPT_ACTF actF_);
+	static Layer* initLayer(OPT_LYR layer_, int node_, OPT_INIT weightInit_, Layer* prevLayer_ = nullptr);
+	void setActFunction(OPT_ACTF actFnc_);
+	void setOptimizer(OPT_OPTM optimizer_, const double& learningRate_, const double& val_0_ = 0.f, const double& val_1_ = 0.f);
 	Tensor<double> getPrevNodes();
 	virtual Tensor<double> forwardProp(const Tensor<double>& x_) = 0;
 	virtual Tensor<double> backwardProp(const Tensor<double>& e_in_) = 0;
@@ -17,7 +19,8 @@ public:
 protected:
 	int nodeNum;
 	Layer* prevLayer;
-	ActFunction* actF;
+	ActFunction* actFnc;
+	Optimizer* optimizer;
 	Tensor<double> nodes;
 	Tensor<double> errors;
 	Weight weight;
