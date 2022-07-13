@@ -64,35 +64,12 @@ Tensor<double> LayerFullyConnected::backwardProp(const Tensor<double>& e_in_)
 void LayerFullyConnected::updateWeight()
 {
 	Tensor<double> prevNodes = getPrevNodes();
-	int dataNum = errors.dim(0);
-	int prevNodeNum = prevNodes.dim(1);
-	int postNodeNum = nodes.dim(1);
-	Tensor<double> d_w(prevNodeNum, postNodeNum);
-	double d_b = 0.f;
-	for (int i = 0; i < prevNodeNum; i++)
-	{
-		for (int j = 0; j < postNodeNum; j++)
-		{
-			double sum = 0.f;
-			for (int k = 0; k < dataNum; k++)
-			{
-				sum += errors.element(k, j) * prevNodes.element(k, i);
-			}
-			d_w(i, j) = sum / dataNum;
-		}
-	}
-	for (int j = 0; j < postNodeNum; j++)
-	{
-		for (int k = 0; k < dataNum; k++)
-		{
-			d_b += errors.element(k, j) / dataNum;
-		}
-	}
-
 	Tensor<double> w = weight.getWeight();
 	double b = weight.getBias();
-	w = w + optimizer->optimizeDeltaWeight(d_w);
-	b = b + optimizer->optimizeDeltaBias(d_b);
+	Tensor<double> d_w = optimizer->optimizeDeltaWeight(errors, prevNodes);
+	double d_b = optimizer->optimizeDeltaBias(errors);
+	w = w + d_w;
+	b = b + d_b;
 	weight.setWeight(w);
 	weight.setBias(b);
 }

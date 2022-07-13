@@ -71,15 +71,16 @@ void Layer::setOptimizer(OPT_OPTM optimizer_, const double& learningRate_, const
 		{
 			delete optimizer;
 		}
-		optimizer = new GDM(learningRate_, momentum, w);
+		optimizer = new GDM(learningRate_, w, momentum);
 	}
 	else if (optimizer_ == OPT_OPTM::RMSPROP)
 	{
+		double gamma = val_0_;
 		if (optimizer != nullptr)
 		{
 			delete optimizer;
 		}
-		optimizer = new RMSProp();
+		optimizer = new RMSProp(learningRate_, w, gamma);
 	}
 	else if (optimizer_ == OPT_OPTM::ADAGRAD)
 	{
@@ -87,15 +88,17 @@ void Layer::setOptimizer(OPT_OPTM optimizer_, const double& learningRate_, const
 		{
 			delete optimizer;
 		}
-		optimizer = new Adagrad();
+		optimizer = new Adagrad(learningRate_, w);
 	}
 	else if (optimizer_ == OPT_OPTM::ADAM)
 	{
+		double beta_1 = val_0_;
+		double beta_2 = val_1_;
 		if (optimizer != nullptr)
 		{
 			delete optimizer;
 		}
-		optimizer = new Adam();
+		optimizer = new Adam(learningRate_, w, beta_1, beta_2);
 	}
 	else
 	{

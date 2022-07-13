@@ -197,7 +197,7 @@ void NeuralNet::setOptimizer(OPT_OPTM optimizer_, const double& val_0_, const do
 		momentum = val_0_;
 		if (momentum == 0.f)
 		{
-			momentum = 0.9;
+			momentum = 0.99;
 		}
 		for (int i = 0; i < layerNum; i++)
 		{
