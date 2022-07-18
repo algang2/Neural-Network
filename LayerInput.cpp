@@ -3,6 +3,7 @@
 LayerInput::LayerInput(int node_)
 {
 	nodeNum = node_;
+	type = OPT_LYR::INPUT;
 }
 
 LayerInput::~LayerInput()

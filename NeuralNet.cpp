@@ -1,9 +1,19 @@
 #include "NeuralNet.h"
 
-NeuralNet::NeuralNet(OPT_LRN learn_, OPT_INIT weightInit_, OPT_NORM norm_, int epoch_, int batch_, double learningRate_, double rmse_)
-	:learn(learn_), weightInit(weightInit_), norm(norm_), epoch(epoch_), batch(batch_), learningRate(learningRate_), rmse(rmse_)
+NeuralNet::NeuralNet()
 {
 	error = false;
+	trained = false;
+	loaded = false;
+	layerNum = 0;
+}
+
+NeuralNet::NeuralNet(OPT_LRN learn_, OPT_INIT weightInit_, OPT_NORM norm_, int epoch_, int batch_, double learningRate_)
+	:learn(learn_), weightInit(weightInit_), norm(norm_), epoch(epoch_), batch(batch_), learningRate(learningRate_)
+{
+	error = false;
+	trained = false;
+	loaded = false;
 	layerNum = 0;
 }
 
@@ -38,7 +48,7 @@ void NeuralNet::setInput(const Tensor<std::string>& input_)
 	}
 	if (norm == OPT_NORM::USENORM)
 	{
-		normalization();
+		normalizeInput();
 	}
 }
 
@@ -119,10 +129,19 @@ void NeuralNet::addLayer(OPT_LYR layer_, int node_, OPT_ACTF actFnc_)
 
 Tensor<std::string> NeuralNet::train()
 {
-	if (error == true)
+	if (error)
 	{
+		printf("[Error]Failed training.\n");
 		Tensor<std::string> retE(1);
-		retE(0) = "[error]Failed training.\n";
+		retE(0) = "[Error]Failed training.";
+		error = false;
+		return retE;
+	}
+	if (loaded)
+	{
+		printf("[Error]Loaded network cannot be trained.\n");
+		Tensor<std::string> retE(1);
+		retE(0) = "[Error]Loaded network cannot be trained.";
 		error = false;
 		return retE;
 	}
@@ -141,13 +160,20 @@ Tensor<std::string> NeuralNet::train()
 			mse += calMSE(batchSliceE);
 		}
 		printf("##Epoch %d RMSE: %f##\n", ep + 1, sqrt(mse));
-		if (sqrt(mse) < rmse)break;
 	}
+	trained = true;
 	return predict();
 }
 
 Tensor<std::string> NeuralNet::predict()
 {
+	if (!trained)
+	{
+		printf("[Error]Network not trained.\n");
+		Tensor<std::string> retE(1);
+		retE(0) = "[Error]Network not trained.";
+		return retE;
+	}
 	Tensor<double> output = forwardProp(input);
 	if (learn == OPT_LRN::REGRESSION)
 	{
@@ -249,6 +275,54 @@ void NeuralNet::setOptimizer(OPT_OPTM optimizer_, const double& val_0_, const do
 	}
 }
 
+void NeuralNet::saveNetwork(std::string dir_)
+{
+	if (!trained)
+	{
+		printf("[Error]Network not trained.\n");
+		return;
+	}
+	BinaryReader reader;
+	reader.setNext(std::to_string((int)learn), true);
+	reader.setNext(std::to_string((int)norm));
+	reader.setNext(std::to_string(layerNum));
+	for (int i = 0; i < layerNum; i++)
+	{
+		reader.setNext(std::to_string((int)layer[i]->type));
+		reader.setNext(std::to_string(layer[i]->nodeNum));
+		reader.setNext(std::to_string((int)(layer[i]->actF)));
+		reader.setNext(layer[i]->weight.saveWeight());
+	}
+	reader.save(dir_ + "\\NeuralNet.mdl");
+}
+
+void NeuralNet::loadNetwork(std::string dir_)
+{
+	trained = true;
+	loaded = true;
+	weightInit = OPT_INIT::NONE;
+	BinaryReader reader(dir_);
+	learn = (OPT_LRN)stoi(reader.getNext());
+	norm = (OPT_NORM)stoi(reader.getNext());
+	int num = stoi(reader.getNext());
+	for (int i = 0; i < num; i++)
+	{
+		OPT_LYR type = (OPT_LYR)stoi(reader.getNext());
+		int nodeNum = stoi(reader.getNext());
+		OPT_ACTF actF = (OPT_ACTF)stoi(reader.getNext());
+		addLayer(type, nodeNum, actF);
+		int size = stoi(reader.getNext());
+		std::string weight;
+		weight += std::to_string(size) + ",";
+		for (int j = 0; j < size; j++)
+		{
+			weight += reader.getNext() + ",";
+		}
+		weight += reader.getNext();
+		layer[i]->weight.loadWeight(weight);
+	}
+}
+
 double NeuralNet::calMSE(const Tensor<double>& error_)
 {
 	int size = error_.size();
@@ -315,7 +389,7 @@ Tensor<std::string> NeuralNet::oneHotDecoding(const Tensor<double>& output_)
 	return outputStr;
 }
 
-void NeuralNet::normalization()
+void NeuralNet::normalizeInput()
 {
 	int dim_0 = input.dim(0);
 	int dim_1 = input.dim(1);

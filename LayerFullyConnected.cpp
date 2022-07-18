@@ -3,6 +3,7 @@
 LayerFullyConnected::LayerFullyConnected(OPT_INIT weightInit_, int prevNode_, int node_)
 {
 	nodeNum = node_;
+	type = OPT_LYR::FULLYCONNECTED;
 	weight.initWeight(weightInit_, prevNode_, node_);
 }
 

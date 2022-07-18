@@ -36,7 +36,6 @@ public:
 	T element(int dim_0_, int dim_1_) const;
 	T element(int dim_0_, int dim_1_, int dim_2_) const;
 	T element(int dim_0_, int dim_1_, int dim_2_, int dim_3_) const;
-	void clip(double clip_);
 	void erase();
 private:
 	int dim_0, dim_1, dim_2, dim_3;
@@ -341,22 +340,6 @@ template <typename T>
 T Tensor<T>::element(int dim_0_, int dim_1_, int dim_2_, int dim_3_) const
 {
 	return tensor[dim_0_ * dim_1 * dim_2 * dim_3 + dim_1_ * dim_2 * dim_3 + dim_2_ * dim_3 + dim_3_];
-}
-
-template <typename T>
-void Tensor<T>::clip(double clip_)
-{
-	for (int i = 0; i < size(); i++)
-	{
-		if (tensor[i] > clip_)
-		{
-			tensor[i] = clip_;
-		}
-		if (tensor[i] < -clip_)
-		{
-			tensor[i] = -clip_;
-		}
-	}
 }
 
 template <typename T>

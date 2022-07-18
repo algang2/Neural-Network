@@ -35,6 +35,7 @@ Layer* Layer::initLayer(OPT_LYR layer_, int node_, OPT_INIT weightInit_, Layer* 
 
 void Layer::setActFunction(OPT_ACTF actFnc_)
 {
+	actF = actFnc_;
 	if (actFnc_ == OPT_ACTF::LINEAR)
 	{
 		actFnc = new Linear();

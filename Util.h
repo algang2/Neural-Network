@@ -9,8 +9,7 @@ Tensor<std::string> getCSVDataSet(const char* path, bool isHead)
 	Tensor<std::string> data;
 	std::fstream CSVFile;
 	CSVFile.open(path, std::ios::in);
-	bool fileOpen = CSVFile.is_open();
-	if (!fileOpen)
+	if (!CSVFile.is_open())
 	{
 		printf("[Error]File Not Found.\n");
 	}

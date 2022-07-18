@@ -16,7 +16,8 @@ enum class OPT_INIT
 {
 	RANDOM = 0,
 	XAIVER = 1,
-	HE = 2
+	HE = 2,
+	NONE = 3
 };
 
 enum class OPT_ACTF

@@ -3,12 +3,16 @@
 #include <vector>
 #include <string>
 #include <stdio.h>
+
 #include "Layer.h"
+#include "BinaryReader.h"
 
 class NeuralNet
 {
+	friend class Layer;
 public:
-	NeuralNet(OPT_LRN learn_, OPT_INIT weightInit_, OPT_NORM norm_, int epoch_, int batch_, double learningRate_ = 0.001, double rmse_ = 0.f);
+	NeuralNet();
+	NeuralNet(OPT_LRN learn_, OPT_INIT weightInit_, OPT_NORM norm_, int epoch_, int batch_, double learningRate_ = 0.001);
 	~NeuralNet();
 	void setInput(const Tensor<std::string>& input_);
 	void setTarget(const Tensor<std::string>& target_);
@@ -19,19 +23,21 @@ public:
 	void backwardProp(const Tensor<double>& e_);
 	void updateWeight();
 	void setOptimizer(OPT_OPTM optimizer_, const double& val_0_ = 0.f, const double& val_1_ = 0.f);
+
+	void saveNetwork(std::string dir_);
+	void loadNetwork(std::string dir_);
 private: 
 	double calMSE(const Tensor<double>& error_);
 	Tensor<double> sliceByBatch(const Tensor<double>& ten_, const int& prevIdx_, const int& postIdx_);
 	void oneHotEncoding(const Tensor<std::string>& target_);
 	Tensor<std::string> oneHotDecoding(const Tensor<double>& output_);
-	void normalization();
+	void normalizeInput();
 private:
 	int epoch;
 	int batch;
 	OPT_LRN learn;
 	OPT_INIT weightInit;
 	OPT_NORM norm;
-	double rmse;
 
 	Tensor<double> input;
 	Tensor<double> target;
@@ -39,6 +45,7 @@ private:
 	bool error;
 	int layerNum;
 	std::vector<Layer*> layer;
+	std::vector<double> normalizer;
 	std::map<std::string, int> encoder;
 
 	OPT_OPTM optimizer;
@@ -47,4 +54,7 @@ private:
 	double gamma;
 	double beta_1;
 	double beta_2;
+
+	bool trained;
+	bool loaded;
 };

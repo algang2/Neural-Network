@@ -3,9 +3,11 @@
 #include "ActiveFunction.h"
 #include "Weight.h"
 #include "Optimizer.h"
+#include "NeuralNet.h"
 
 class Layer
 {
+	friend class NeuralNet;
 public:
 	Layer();
 	~Layer();
@@ -17,7 +19,9 @@ public:
 	virtual Tensor<double> backwardProp(const Tensor<double>& e_in_) = 0;
 	virtual void updateWeight() = 0;
 protected:
+	OPT_LYR type;
 	int nodeNum;
+	OPT_ACTF actF;
 	Layer* prevLayer;
 	ActFunction* actFnc;
 	Optimizer* optimizer;
