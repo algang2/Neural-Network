@@ -21,11 +21,11 @@ void Weight::initWeight(OPT_INIT weightInit_, int dim_0_, int dim_1_, int dim_2_
 	}
 	else if (weightInit_ == OPT_INIT::XAIVER)
 	{
-		clip = sqrt(6.f / (dim_0_ + dim_1_ + dim_2_ + dim_3_));
+		clip = sqrt(6.f / (dim_0_ * dim_2_ * dim_3_ + dim_1_ * dim_2_ * dim_3_));
 	}
 	else if (weightInit_ == OPT_INIT::HE)
 	{
-		clip = sqrt(2.f / (dim_0_ + dim_2_));
+		clip = sqrt(2.f / (dim_0_ * dim_2_ * dim_3_));
 	}
 	else if (weightInit_ == OPT_INIT::NONE)
 	{
@@ -64,6 +64,10 @@ std::string Weight::saveWeight()
 	BinaryReader reader;
 	int size = weight.size();
 	reader.setNext(std::to_string(size), true);
+	reader.setNext(std::to_string(weight.dim(0)));
+	reader.setNext(std::to_string(weight.dim(1)));
+	reader.setNext(std::to_string(weight.dim(2)));
+	reader.setNext(std::to_string(weight.dim(3)));
 	for (int i = 0; i < size; i++)
 	{
 		reader.setNext(std::to_string(weight.element(i)));
@@ -72,14 +76,17 @@ std::string Weight::saveWeight()
 	return reader.getBinary();
 }
 
-void Weight::loadWeight(std::string weight_)
+void Weight::loadWeight(BinaryReader& reader_)
 {
-	BinaryReader reader;
-	reader.setBinary(weight_);
-	int size = stoi(reader.getNext());
+	int size = stoi(reader_.getNext());
+	int dim_0 = stoi(reader_.getNext());
+	int dim_1 = stoi(reader_.getNext());
+	int dim_2 = stoi(reader_.getNext());
+	int dim_3 = stoi(reader_.getNext());
+	weight.resize(dim_0, dim_1, dim_2, dim_3);
 	for (int i = 0; i < size; i++)
 	{
-		weight(i) = stod(reader.getNext());
+		weight(i) = stod(reader_.getNext());
 	}
-	bias = stod(reader.getNext());
+	bias = stod(reader_.getNext());
 }

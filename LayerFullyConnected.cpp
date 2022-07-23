@@ -2,9 +2,21 @@
 
 LayerFullyConnected::LayerFullyConnected(OPT_INIT weightInit_, int prevNode_, int node_)
 {
-	nodeNum = node_;
+	dim[0] = node_;
+	dim[1] = 1;
+	dim[2] = 1;
 	type = OPT_LYR::FULLYCONNECTED;
 	weight.initWeight(weightInit_, prevNode_, node_);
+}
+
+LayerFullyConnected::LayerFullyConnected(BinaryReader& reader_)
+{
+	type = OPT_LYR::FULLYCONNECTED;
+	dim[0] = stoi(reader_.getNext());
+	dim[1] = stoi(reader_.getNext());
+	dim[2] = stoi(reader_.getNext());
+	actF = (OPT_ACTF)stoi(reader_.getNext());
+	setActFunction(actF);
 }
 
 LayerFullyConnected::~LayerFullyConnected()
@@ -73,4 +85,15 @@ void LayerFullyConnected::updateWeight()
 	b = b + d_b;
 	weight.setWeight(w);
 	weight.setBias(b);
+}
+
+std::string LayerFullyConnected::saveLayer()
+{
+	BinaryReader reader;
+	reader.setNext(std::to_string((int)type), true);
+	reader.setNext(std::to_string(dim[0]));
+	reader.setNext(std::to_string(dim[1]));
+	reader.setNext(std::to_string(dim[2]));
+	reader.setNext(std::to_string((int)actF));
+	return reader.getBinary();
 }

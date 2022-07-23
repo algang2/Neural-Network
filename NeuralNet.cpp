@@ -127,6 +127,42 @@ void NeuralNet::addLayer(OPT_LYR layer_, int node_, OPT_ACTF actFnc_)
 	layerNum++;
 }
 
+void NeuralNet::addLayer(OPT_LYR layer_, int depth_, int kernel_, int stride_, OPT_ACTF actFnc_)
+{
+	Layer* prevlyrptr = nullptr;
+	if (layerNum > 0) prevlyrptr = layer[layerNum - 1];
+	Layer* lyrptr = Layer::initLayer(layer_, depth_, kernel_, stride_, weightInit, prevlyrptr);
+	if (lyrptr == nullptr)
+	{
+		error = true;
+		printf("[Error]Layer not available.\n");
+		return;
+	}
+	lyrptr->setActFunction(actFnc_);
+	if (optimizer == OPT_OPTM::GDM)
+	{
+		lyrptr->setOptimizer(optimizer, learningRate, momentum);
+	}
+	else if (optimizer == OPT_OPTM::RMSPROP)
+	{
+		lyrptr->setOptimizer(optimizer, learningRate, gamma);
+	}
+	else if (optimizer == OPT_OPTM::ADAGRAD)
+	{
+		lyrptr->setOptimizer(optimizer, learningRate);
+	}
+	else if (optimizer == OPT_OPTM::ADAM)
+	{
+		lyrptr->setOptimizer(optimizer, learningRate, beta_1, beta_2);
+	}
+	else
+	{
+		lyrptr->setOptimizer(optimizer, learningRate);
+	}
+	layer.push_back(lyrptr);
+	layerNum++;
+}
+
 Tensor<std::string> NeuralNet::train()
 {
 	if (error)
@@ -288,9 +324,7 @@ void NeuralNet::saveNetwork(std::string dir_)
 	reader.setNext(std::to_string(layerNum));
 	for (int i = 0; i < layerNum; i++)
 	{
-		reader.setNext(std::to_string((int)layer[i]->type));
-		reader.setNext(std::to_string(layer[i]->nodeNum));
-		reader.setNext(std::to_string((int)(layer[i]->actF)));
+		reader.setNext(layer[i]->saveLayer());
 		reader.setNext(layer[i]->weight.saveWeight());
 	}
 	reader.save(dir_ + "\\NeuralNet.mdl");
@@ -307,19 +341,12 @@ void NeuralNet::loadNetwork(std::string dir_)
 	int num = stoi(reader.getNext());
 	for (int i = 0; i < num; i++)
 	{
-		OPT_LYR type = (OPT_LYR)stoi(reader.getNext());
-		int nodeNum = stoi(reader.getNext());
-		OPT_ACTF actF = (OPT_ACTF)stoi(reader.getNext());
-		addLayer(type, nodeNum, actF);
-		int size = stoi(reader.getNext());
-		std::string weight;
-		weight += std::to_string(size) + ",";
-		for (int j = 0; j < size; j++)
-		{
-			weight += reader.getNext() + ",";
-		}
-		weight += reader.getNext();
-		layer[i]->weight.loadWeight(weight);
+		Layer* prevlyrptr = nullptr;
+		if (layerNum > 0) prevlyrptr = layer[layerNum - 1];
+		Layer* lyrptr = Layer::loadLayer(reader, prevlyrptr);
+		lyrptr->weight.loadWeight(reader);
+		layer.push_back(lyrptr);
+		layerNum++;
 	}
 }
 

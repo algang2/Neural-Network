@@ -1,10 +1,11 @@
 #include "Layer.h"
 #include "LayerInput.h"
 #include "LayerFullyConnected.h"
+#include "LayerConvolution.h"
 
 Layer::Layer() 
 {
-	nodeNum = 0;
+	dim = new int[3];
 	prevLayer = nullptr;
 	actFnc = nullptr;
 	optimizer = nullptr;
@@ -12,6 +13,7 @@ Layer::Layer()
 
 Layer::~Layer() 
 {
+	delete[] dim;
 	delete prevLayer;
 	delete actFnc;
 	delete optimizer;
@@ -26,9 +28,24 @@ Layer* Layer::initLayer(OPT_LYR layer_, int node_, OPT_INIT weightInit_, Layer* 
 	}
 	else if (layer_ == OPT_LYR::FULLYCONNECTED)
 	{
-		int nodeNum = prevLayer_->nodeNum;
+		int nodeNum = prevLayer_->dim[0] * prevLayer_->dim[1] * prevLayer_->dim[2];
 		lyrptr = new LayerFullyConnected(weightInit_, nodeNum, node_);
 		lyrptr->prevLayer = prevLayer_;
+	}
+	return lyrptr;
+}
+
+Layer* Layer::initLayer(OPT_LYR layer_, int depth_, int kernel_, int stride_, OPT_INIT weightInit_, Layer* prevLayer_)
+{
+	Layer* lyrptr = nullptr;
+	if (layer_ == OPT_LYR::CONVOLUTION)
+	{
+		lyrptr = new LayerConvolution(weightInit_, prevLayer_->dim, depth_, kernel_, stride_);
+		lyrptr->prevLayer = prevLayer_;
+	}
+	else if (layer_ == OPT_LYR::POOLING)
+	{
+
 	}
 	return lyrptr;
 }
@@ -114,4 +131,38 @@ void Layer::setOptimizer(OPT_OPTM optimizer_, const double& learningRate_, const
 Tensor<double> Layer::getPrevNodes()
 {
 	return prevLayer->nodes;
+}
+
+int Layer::getDim(int dim_)
+{
+	return dim[dim_];
+}
+int Layer::getPrevDim(int dim_)
+{
+	return prevLayer->dim[dim_];
+}
+
+Layer* Layer::loadLayer(BinaryReader& reader_, Layer* prevLayer_)
+{
+	Layer* lyrptr = nullptr;
+	OPT_LYR layer = (OPT_LYR)stoi(reader_.getNext());
+	if (layer == OPT_LYR::INPUT)
+	{
+		lyrptr = new LayerInput(reader_);
+	}
+	else if (layer == OPT_LYR::FULLYCONNECTED)
+	{
+		lyrptr = new LayerFullyConnected(reader_);
+		lyrptr->prevLayer = prevLayer_;
+	}
+	else if (layer == OPT_LYR::CONVOLUTION)
+	{
+		lyrptr = new LayerConvolution(reader_);
+		lyrptr->prevLayer = prevLayer_;
+	}
+	else if (layer == OPT_LYR::POOLING)
+	{
+
+	}
+	return lyrptr;
 }

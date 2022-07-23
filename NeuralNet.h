@@ -17,6 +17,7 @@ public:
 	void setInput(const Tensor<std::string>& input_);
 	void setTarget(const Tensor<std::string>& target_);
 	void addLayer(OPT_LYR layer_, int node_, OPT_ACTF actFnc_ = OPT_ACTF::LINEAR);
+	void addLayer(OPT_LYR layer_, int depth_, int kernel_, int stride_, OPT_ACTF actFnc_ = OPT_ACTF::LINEAR);
 	Tensor<std::string> train();
 	Tensor<std::string> predict();
 	Tensor<double> forwardProp(const Tensor<double>& x_);

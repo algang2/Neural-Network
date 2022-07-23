@@ -15,7 +15,7 @@ public:
 	Tensor<double> getWeight();
 	double getBias();
 	std::string saveWeight();
-	void loadWeight(std::string weight_);
+	void loadWeight(BinaryReader& reader_);
 private:
 	Tensor<double> weight;
 	double bias;
